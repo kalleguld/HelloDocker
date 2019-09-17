@@ -1,11 +1,11 @@
 FROM node AS clientbuild
 WORKDIR /usr/src/app
-COPY package*.json ./
+COPY HelloDocker/package*.json ./
 RUN npm install
 WORKDIR /usr/src/app/spa
-COPY ./spa/package*.json ./
+COPY HelloDocker/spa/package*.json ./
 RUN npm install
-COPY ./spa ./
+COPY HelloDocker/spa ./
 RUN npm run build
 
 
@@ -15,9 +15,9 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch AS build
 WORKDIR /src
-COPY HelloDocker.csproj .
+COPY HelloDocker/HelloDocker.csproj .
 RUN dotnet restore HelloDocker.csproj
-COPY . .
+COPY HelloDocker/ .
 RUN dotnet build ./HelloDocker.csproj -c Release -o /app
 
 FROM build AS publish
