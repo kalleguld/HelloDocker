@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -25,7 +26,7 @@ namespace HelloDocker
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddSpaStaticFiles(conf => conf.RootPath = "spa");
+            services.AddSpaStaticFiles(cfg => cfg.RootPath = "spa/dist/spa");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,8 +37,30 @@ namespace HelloDocker
                 app.UseDeveloperExceptionPage();
             }
 
+
+            var cachePeriod = TimeSpan.FromHours(24);
+            var fileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+                    Path.Combine(Directory.GetCurrentDirectory(), "spa/dist/spa"));
+            var staticFileOptions = new StaticFileOptions
+            {
+                FileProvider = fileProvider,
+                OnPrepareResponse = ctx =>
+                {
+                    ctx.Context.Response.Headers.Add("Cache-Control", $"public, max-age={cachePeriod.TotalSeconds}");
+                },
+            };
+
+
+            app.UseDefaultFiles(new DefaultFilesOptions
+            {
+                FileProvider = fileProvider
+            });
+            app.UseStaticFiles(staticFileOptions);
             app.UseMvc();
             app.UseSpaStaticFiles();
+            app.UseSpa(conf =>
+            {
+            });
         }
     }
 }

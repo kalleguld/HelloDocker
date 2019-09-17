@@ -15,18 +15,17 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch AS build
 WORKDIR /src
-COPY ["HelloDocker.csproj", "HelloDocker/"]
-RUN dotnet restore "HelloDocker/HelloDocker.csproj"
+COPY HelloDocker.csproj .
+RUN dotnet restore HelloDocker.csproj
 COPY . .
-RUN ls -al "./HelloDocker"
-RUN dotnet build "./HelloDocker/HelloDocker.csproj" -c Release -o /app
+RUN dotnet build ./HelloDocker.csproj -c Release -o /app
 
 FROM build AS publish
-RUN dotnet publish "HelloDocker.csproj" -c Release -o /app
+RUN dotnet publish HelloDocker.csproj -c Release -o /app
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
 WORKDIR /
 COPY --from=clientbuild /usr/src/app/spa/dist /spa/dist
-ENTRYPOINT ["dotnet", "HelloDocker.dll"]
+ENTRYPOINT ["dotnet", "app/HelloDocker.dll"]
